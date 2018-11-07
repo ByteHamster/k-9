@@ -9,6 +9,7 @@ import android.support.v7.preference.PreferenceFragmentCompat.OnPreferenceStartS
 import android.support.v7.preference.PreferenceScreen
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import com.bytehamster.lib.preferencesearch.SearchPreferenceActionView
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResult
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResultListener
@@ -49,12 +50,11 @@ class GeneralSettingsActivity : K9Activity(), OnPreferenceStartScreenCallback, S
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(KEY_SEARCH_QUERY, searchPreferenceActionView.query.toString())
         outState.putBoolean(KEY_SEARCH_ENABLED, !searchPreferenceActionView.isIconified)
-        searchPreferenceActionView.onBackPressed()
+        searchPreferenceActionView.cancelSearch()
         super.onSaveInstanceState(outState)
     }
 
     override fun onSearchResultClicked(result: SearchPreferenceResult) {
-        searchPreferenceActionView.close()
         searchPreferenceMenuItem.collapseActionView()
 
         if (result.resourceFile == R.xml.font_preferences) {
@@ -83,19 +83,24 @@ class GeneralSettingsActivity : K9Activity(), OnPreferenceStartScreenCallback, S
             setBreadcrumbsEnabled(true)
             setFuzzySearchEnabled(true)
 
-            with(index()) {
-                addFile(R.xml.general_settings)
+            val accentColor = theme.resolveAttribute(R.attr.colorAccent)
+            val container = findViewById<View>(R.id.generalSettingsContainer)
+            val iconPadding = supportActionBar!!.height/2
+            useAnimation(container.width-iconPadding, -iconPadding, container.width, container.height, accentColor)
+
+            index(R.xml.general_settings)
+
+            with(index(R.xml.font_preferences)) {
                 addBreadcrumb(R.string.general_settings_title)
                 addBreadcrumb(R.string.display_preferences)
                 addBreadcrumb(R.string.global_preferences)
                 addBreadcrumb(R.string.font_size_settings_title)
-                addFile(R.xml.font_preferences)
             }
         }
 
         searchPreferenceMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                searchPreferenceActionView.onBackPressed()
+                searchPreferenceActionView.cancelSearch()
                 return true
             }
 
@@ -125,7 +130,7 @@ class GeneralSettingsActivity : K9Activity(), OnPreferenceStartScreenCallback, S
     }
 
     override fun onBackPressed() {
-        if (!searchPreferenceActionView.onBackPressed()) {
+        if (!searchPreferenceActionView.cancelSearch()) {
             super.onBackPressed()
         }
     }
